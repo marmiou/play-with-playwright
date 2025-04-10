@@ -73,10 +73,12 @@ const Index = () => {
             </p>
           </CardContent>
           <CardFooter>
-            <Button variant="outline" className="gap-2">
-              View Documentation
-              <ArrowRight className="h-4 w-4" />
-            </Button>
+            <Link to="/documentation">
+              <Button variant="outline" className="gap-2">
+                View Documentation
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </CardFooter>
         </Card>
       </div>
