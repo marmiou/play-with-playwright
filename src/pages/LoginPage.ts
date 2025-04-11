@@ -8,6 +8,7 @@ export class LoginPage extends BasePage {
   private passwordInput = this.page.locator('#password');
   private loginButton = this.page.locator('button[type="submit"]');
   private flashMessage = this.page.locator('#flash');
+  private logoutButton = this.page.locator('a.button:has-text("Logout")');
 
   constructor(page: Page) {
     super(page);
@@ -23,15 +24,21 @@ export class LoginPage extends BasePage {
     await this.loginButton.click();
   }
 
-  async getFlashMessage() {
-    return this.flashMessage.textContent();
-  }
-
   async verifySuccessfulLogin() {
     await expect(this.flashMessage).toContainText('You logged into a secure area');
+    await expect(this.logoutButton).toBeVisible();
   }
 
-  async verifyFailedLogin() {
-    await expect(this.flashMessage).toContainText('Your username is invalid');
+  async verifyFailedLogin(expectedError?: string) {
+    if (expectedError) {
+      await expect(this.flashMessage).toContainText(expectedError);
+    } else {
+      await expect(this.flashMessage).toContainText('Your username is invalid');
+    }
+  }
+
+  async logout() {
+    await this.logoutButton.click();
+    await expect(this.flashMessage).toContainText('You logged out of the secure area');
   }
 }
