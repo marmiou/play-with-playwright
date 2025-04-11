@@ -31,7 +31,7 @@ interface TestRunnerPanelProps {
 }
 
 const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
-  const testSuites = {
+  const testSuites: Record<string, Test[]> = {
     login: [
       { 
         id: 'login-1', 
@@ -154,14 +154,14 @@ const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
   };
   
   const [tests, setTests] = useState<Test[]>(
-    selectedSpec && testSuites[selectedSpec as keyof typeof testSuites] 
-      ? testSuites[selectedSpec as keyof typeof testSuites] 
+    selectedSpec && testSuites[selectedSpec] 
+      ? testSuites[selectedSpec] 
       : testSuites.login
   );
   
   useEffect(() => {
-    if (selectedSpec && testSuites[selectedSpec as keyof typeof testSuites]) {
-      setTests(testSuites[selectedSpec as keyof typeof testSuites]);
+    if (selectedSpec && testSuites[selectedSpec]) {
+      setTests(testSuites[selectedSpec]);
     } else if (!selectedSpec) {
       setTests(testSuites.login);
     }
@@ -179,10 +179,10 @@ const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
     
     setTests(tests.map(test => ({ 
       ...test, 
-      status: 'pending', 
+      status: 'pending' as const, 
       duration: undefined, 
       error: undefined,
-      steps: test.steps.map(step => ({ ...step, status: 'pending', error: undefined }))
+      steps: test.steps.map(step => ({ ...step, status: 'pending' as const, error: undefined }))
     })));
     
     const totalTests = tests.length;
@@ -190,7 +190,10 @@ const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
     for (let i = 0; i < totalTests; i++) {
       setTests(prev => {
         const updated = [...prev];
-        updated[i].status = 'running';
+        updated[i] = {
+          ...updated[i],
+          status: 'running'
+        };
         return updated;
       });
       
@@ -198,7 +201,16 @@ const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
       for (let j = 0; j < currentTest.steps.length; j++) {
         setTests(prev => {
           const updated = [...prev];
-          updated[i].steps[j].status = 'running';
+          updated[i] = {
+            ...updated[i],
+            steps: [
+              ...updated[i].steps
+            ]
+          };
+          updated[i].steps[j] = {
+            ...updated[i].steps[j],
+            status: 'running'
+          };
           return updated;
         });
         
@@ -208,23 +220,30 @@ const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
         
         setTests(prev => {
           const updated = [...prev];
-          updated[i].steps[j].status = stepPassed ? 'passed' : 'failed';
+          updated[i] = {
+            ...updated[i],
+            steps: [
+              ...updated[i].steps
+            ]
+          };
+          
+          updated[i].steps[j] = {
+            ...updated[i].steps[j],
+            status: stepPassed ? 'passed' : 'failed' 
+          };
           
           if (!stepPassed) {
             updated[i].steps[j].error = 'Element not found or assertion failed';
             updated[i].status = 'failed';
             updated[i].error = `Step ${j+1} failed: ${updated[i].steps[j].error}`;
-            return updated;
-          }
-          
-          if (j === currentTest.steps.length - 1) {
+          } else if (j === currentTest.steps.length - 1) {
             updated[i].status = 'passed';
           }
           
           return updated;
         });
         
-        if (tests[i].steps[j].status === 'failed') {
+        if (!stepPassed) {
           break;
         }
       }
@@ -233,7 +252,10 @@ const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
       
       setTests(prev => {
         const updated = [...prev];
-        updated[i].duration = Math.floor(Math.random() * 1000) + 500;
+        updated[i] = {
+          ...updated[i],
+          duration: Math.floor(Math.random() * 1000) + 500
+        };
         return updated;
       });
       
