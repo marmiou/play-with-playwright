@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { CheckCircle, XCircle, Clock } from 'lucide-react';
 
 export const getStatusIcon = (status: string) => {
