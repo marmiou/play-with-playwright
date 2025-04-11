@@ -3,10 +3,19 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, XCircle, Clock, Play, AlertCircle, FileText, Terminal, Image, Split } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Play, AlertCircle, FileText, Terminal, Image, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+
+interface TestStep {
+  id: string;
+  description: string;
+  status: 'passed' | 'failed' | 'pending' | 'running';
+  error?: string;
+  screenshot?: string;
+}
 
 interface Test {
   id: string;
@@ -15,6 +24,7 @@ interface Test {
   duration?: number;
   error?: string;
   browser: string;
+  steps: TestStep[];
 }
 
 interface TestRunnerPanelProps {
@@ -23,9 +33,45 @@ interface TestRunnerPanelProps {
 
 const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
   const [tests, setTests] = useState<Test[]>([
-    { id: '1', name: 'should login with valid credentials', status: 'pending', browser: 'chromium' },
-    { id: '2', name: 'should not login with invalid credentials', status: 'pending', browser: 'chromium' },
-    { id: '3', name: 'should show validation errors', status: 'pending', browser: 'chromium' },
+    { 
+      id: '1', 
+      name: 'should login with valid credentials', 
+      status: 'pending', 
+      browser: 'chromium',
+      steps: [
+        { id: '1-1', description: 'Navigate to login page', status: 'pending' },
+        { id: '1-2', description: 'Enter username', status: 'pending' },
+        { id: '1-3', description: 'Enter password', status: 'pending' },
+        { id: '1-4', description: 'Click login button', status: 'pending' },
+        { id: '1-5', description: 'Verify dashboard is displayed', status: 'pending' },
+      ]
+    },
+    { 
+      id: '2', 
+      name: 'should not login with invalid credentials', 
+      status: 'pending', 
+      browser: 'chromium',
+      steps: [
+        { id: '2-1', description: 'Navigate to login page', status: 'pending' },
+        { id: '2-2', description: 'Enter invalid username', status: 'pending' },
+        { id: '2-3', description: 'Enter invalid password', status: 'pending' },
+        { id: '2-4', description: 'Click login button', status: 'pending' },
+        { id: '2-5', description: 'Verify error message is displayed', status: 'pending' },
+      ]
+    },
+    { 
+      id: '3', 
+      name: 'should show validation errors', 
+      status: 'pending', 
+      browser: 'chromium',
+      steps: [
+        { id: '3-1', description: 'Navigate to login page', status: 'pending' },
+        { id: '3-2', description: 'Leave username empty', status: 'pending' },
+        { id: '3-3', description: 'Leave password empty', status: 'pending' },
+        { id: '3-4', description: 'Click login button', status: 'pending' },
+        { id: '3-5', description: 'Verify validation errors are displayed', status: 'pending' },
+      ]
+    },
   ]);
   
   const [isRunning, setIsRunning] = useState(false);
@@ -39,7 +85,13 @@ const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
     toast.info('Running tests...');
     
     // Reset test statuses
-    setTests(tests.map(test => ({ ...test, status: 'pending', duration: undefined, error: undefined })));
+    setTests(tests.map(test => ({ 
+      ...test, 
+      status: 'pending', 
+      duration: undefined, 
+      error: undefined,
+      steps: test.steps.map(step => ({ ...step, status: 'pending', error: undefined }))
+    })));
     
     // Simulate test execution
     const totalTests = tests.length;
@@ -52,20 +104,56 @@ const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
         return updated;
       });
       
-      // Simulate test execution time
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Run each step in the test
+      const currentTest = tests[i];
+      for (let j = 0; j < currentTest.steps.length; j++) {
+        // Update current step to running
+        setTests(prev => {
+          const updated = [...prev];
+          updated[i].steps[j].status = 'running';
+          return updated;
+        });
+        
+        // Simulate step execution time
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Random pass/fail based on step id for demo purposes
+        const stepPassed = Math.random() > 0.15;
+        
+        // Update step status
+        setTests(prev => {
+          const updated = [...prev];
+          updated[i].steps[j].status = stepPassed ? 'passed' : 'failed';
+          
+          if (!stepPassed) {
+            updated[i].steps[j].error = 'Element not found or assertion failed';
+            // If a step fails, fail the test and break the step loop
+            updated[i].status = 'failed';
+            updated[i].error = `Step ${j+1} failed: ${updated[i].steps[j].error}`;
+            return updated;
+          }
+          
+          // If this is the last step and all steps passed, mark test as passed
+          if (j === currentTest.steps.length - 1) {
+            updated[i].status = 'passed';
+          }
+          
+          return updated;
+        });
+        
+        // If the step failed, break the step loop
+        if (tests[i].steps[j].status === 'failed') {
+          break;
+        }
+      }
       
-      // Random pass/fail based on test id for demo purposes
-      const passed = Math.random() > 0.3;
+      // Simulate test completion time
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Update test status
+      // Update test duration
       setTests(prev => {
         const updated = [...prev];
-        updated[i].status = passed ? 'passed' : 'failed';
         updated[i].duration = Math.floor(Math.random() * 1000) + 500;
-        if (!passed) {
-          updated[i].error = 'Element not found or assertion failed';
-        }
         return updated;
       });
       
@@ -166,33 +254,54 @@ const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
         </TabsList>
         
         <TabsContent value="tests" className="mt-4">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">Status</TableHead>
-                <TableHead>Test Name</TableHead>
-                <TableHead>Browser</TableHead>
-                <TableHead className="text-right">Duration</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tests.map((test) => (
-                <TableRow key={test.id} className={test.status === 'failed' ? 'bg-red-50' : ''}>
-                  <TableCell>{getStatusIcon(test.status)}</TableCell>
-                  <TableCell>
-                    <div className="font-medium">{test.name}</div>
+          <Accordion type="multiple" className="w-full">
+            {tests.map((test) => (
+              <AccordionItem key={test.id} value={test.id} className={test.status === 'failed' ? 'bg-red-50 rounded-md mb-2' : 'mb-2 border rounded-md'}>
+                <AccordionTrigger className="px-4 py-2 hover:no-underline">
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="w-6">{getStatusIcon(test.status)}</div>
+                    <div className="flex-1 font-medium text-left">{test.name}</div>
+                    <div className="text-sm text-muted-foreground text-right">
+                      {test.duration ? `${test.duration}ms` : '-'}
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="px-4 pb-2">
+                    <div className="text-sm text-muted-foreground mb-2">Browser: {test.browser}</div>
                     {test.error && (
-                      <div className="text-xs text-red-500 mt-1">{test.error}</div>
+                      <div className="text-sm text-red-500 mb-4 p-2 bg-red-50 rounded-md">
+                        Error: {test.error}
+                      </div>
                     )}
-                  </TableCell>
-                  <TableCell>{test.browser}</TableCell>
-                  <TableCell className="text-right">
-                    {test.duration ? `${test.duration}ms` : '-'}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    <div className="text-sm font-medium mb-2">Test Steps:</div>
+                    <div className="space-y-2 ml-4">
+                      {test.steps.map((step) => (
+                        <div 
+                          key={step.id} 
+                          className={`p-2 rounded-md flex items-start gap-2 ${
+                            step.status === 'failed' ? 'bg-red-50' : 
+                            step.status === 'passed' ? 'bg-green-50' : 
+                            'bg-gray-50'
+                          }`}
+                        >
+                          <div className="mt-0.5">{getStatusIcon(step.status)}</div>
+                          <div className="flex-1">
+                            <div className="text-sm">{step.description}</div>
+                            {step.error && (
+                              <div className="text-xs text-red-500 mt-1 p-1 bg-red-50 rounded">
+                                {step.error}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </TabsContent>
         
         <TabsContent value="output" className="mt-4">

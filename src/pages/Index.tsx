@@ -42,12 +42,12 @@ const Index = () => {
             <BarChart2 className="h-6 w-6 mb-2" />
             <CardTitle>Advanced Dashboard</CardTitle>
             <CardDescription className="text-primary-foreground/80">
-              Cypress-inspired test dashboard
+              Interactive test dashboard
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p>
-              A feature-rich dashboard inspired by Cypress with detailed reporting, screenshots, and more.
+              A feature-rich dashboard with detailed reporting, screenshots, and more.
             </p>
           </CardContent>
           <CardFooter>
