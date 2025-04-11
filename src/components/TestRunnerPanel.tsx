@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -32,47 +31,141 @@ interface TestRunnerPanelProps {
 }
 
 const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
-  const [tests, setTests] = useState<Test[]>([
-    { 
-      id: '1', 
-      name: 'should login with valid credentials', 
-      status: 'pending', 
-      browser: 'chromium',
-      steps: [
-        { id: '1-1', description: 'Navigate to login page', status: 'pending' },
-        { id: '1-2', description: 'Enter username', status: 'pending' },
-        { id: '1-3', description: 'Enter password', status: 'pending' },
-        { id: '1-4', description: 'Click login button', status: 'pending' },
-        { id: '1-5', description: 'Verify dashboard is displayed', status: 'pending' },
-      ]
-    },
-    { 
-      id: '2', 
-      name: 'should not login with invalid credentials', 
-      status: 'pending', 
-      browser: 'chromium',
-      steps: [
-        { id: '2-1', description: 'Navigate to login page', status: 'pending' },
-        { id: '2-2', description: 'Enter invalid username', status: 'pending' },
-        { id: '2-3', description: 'Enter invalid password', status: 'pending' },
-        { id: '2-4', description: 'Click login button', status: 'pending' },
-        { id: '2-5', description: 'Verify error message is displayed', status: 'pending' },
-      ]
-    },
-    { 
-      id: '3', 
-      name: 'should show validation errors', 
-      status: 'pending', 
-      browser: 'chromium',
-      steps: [
-        { id: '3-1', description: 'Navigate to login page', status: 'pending' },
-        { id: '3-2', description: 'Leave username empty', status: 'pending' },
-        { id: '3-3', description: 'Leave password empty', status: 'pending' },
-        { id: '3-4', description: 'Click login button', status: 'pending' },
-        { id: '3-5', description: 'Verify validation errors are displayed', status: 'pending' },
-      ]
-    },
-  ]);
+  const testSuites = {
+    login: [
+      { 
+        id: 'login-1', 
+        name: 'should login with valid credentials', 
+        status: 'pending', 
+        browser: 'chromium',
+        steps: [
+          { id: 'login-1-1', description: 'Navigate to login page', status: 'pending' },
+          { id: 'login-1-2', description: 'Enter username', status: 'pending' },
+          { id: 'login-1-3', description: 'Enter password', status: 'pending' },
+          { id: 'login-1-4', description: 'Click login button', status: 'pending' },
+          { id: 'login-1-5', description: 'Verify successful login message', status: 'pending' },
+        ]
+      },
+      { 
+        id: 'login-2', 
+        name: 'should not login with invalid credentials', 
+        status: 'pending', 
+        browser: 'chromium',
+        steps: [
+          { id: 'login-2-1', description: 'Navigate to login page', status: 'pending' },
+          { id: 'login-2-2', description: 'Enter invalid username', status: 'pending' },
+          { id: 'login-2-3', description: 'Enter invalid password', status: 'pending' },
+          { id: 'login-2-4', description: 'Click login button', status: 'pending' },
+          { id: 'login-2-5', description: 'Verify error message is displayed', status: 'pending' },
+        ]
+      },
+    ],
+    checkboxes: [
+      { 
+        id: 'checkbox-1', 
+        name: 'should check and uncheck checkboxes', 
+        status: 'pending', 
+        browser: 'chromium',
+        steps: [
+          { id: 'checkbox-1-1', description: 'Navigate to checkboxes page', status: 'pending' },
+          { id: 'checkbox-1-2', description: 'Verify initial checkbox states', status: 'pending' },
+          { id: 'checkbox-1-3', description: 'Toggle first checkbox', status: 'pending' },
+          { id: 'checkbox-1-4', description: 'Verify first checkbox is checked', status: 'pending' },
+          { id: 'checkbox-1-5', description: 'Toggle second checkbox', status: 'pending' },
+          { id: 'checkbox-1-6', description: 'Verify second checkbox is unchecked', status: 'pending' },
+        ]
+      }
+    ],
+    dropdown: [
+      { 
+        id: 'dropdown-1', 
+        name: 'should select dropdown options', 
+        status: 'pending', 
+        browser: 'chromium',
+        steps: [
+          { id: 'dropdown-1-1', description: 'Navigate to dropdown page', status: 'pending' },
+          { id: 'dropdown-1-2', description: 'Select Option 1', status: 'pending' },
+          { id: 'dropdown-1-3', description: 'Verify Option 1 is selected', status: 'pending' },
+          { id: 'dropdown-1-4', description: 'Select Option 2', status: 'pending' },
+          { id: 'dropdown-1-5', description: 'Verify Option 2 is selected', status: 'pending' },
+        ]
+      }
+    ],
+    inputs: [
+      { 
+        id: 'inputs-1', 
+        name: 'should enter numeric values', 
+        status: 'pending', 
+        browser: 'chromium',
+        steps: [
+          { id: 'inputs-1-1', description: 'Navigate to inputs page', status: 'pending' },
+          { id: 'inputs-1-2', description: 'Enter number 42', status: 'pending' },
+          { id: 'inputs-1-3', description: 'Verify input value is 42', status: 'pending' },
+          { id: 'inputs-1-4', description: 'Enter number 0', status: 'pending' },
+          { id: 'inputs-1-5', description: 'Verify input value is 0', status: 'pending' },
+          { id: 'inputs-1-6', description: 'Enter number -10', status: 'pending' },
+          { id: 'inputs-1-7', description: 'Verify input value is -10', status: 'pending' },
+        ]
+      }
+    ],
+    hovers: [
+      { 
+        id: 'hovers-1', 
+        name: 'should display user information on hover', 
+        status: 'pending', 
+        browser: 'chromium',
+        steps: [
+          { id: 'hovers-1-1', description: 'Navigate to hovers page', status: 'pending' },
+          { id: 'hovers-1-2', description: 'Hover over first user', status: 'pending' },
+          { id: 'hovers-1-3', description: 'Verify user info is visible', status: 'pending' },
+          { id: 'hovers-1-4', description: 'Move mouse away', status: 'pending' },
+          { id: 'hovers-1-5', description: 'Verify user info is hidden', status: 'pending' },
+          { id: 'hovers-1-6', description: 'Test hover on second user', status: 'pending' },
+          { id: 'hovers-1-7', description: 'Test hover on third user', status: 'pending' },
+        ]
+      }
+    ],
+    'dynamic-loading': [
+      { 
+        id: 'dynamic-1', 
+        name: 'should wait for hidden element', 
+        status: 'pending', 
+        browser: 'chromium',
+        steps: [
+          { id: 'dynamic-1-1', description: 'Navigate to dynamic loading example 1', status: 'pending' },
+          { id: 'dynamic-1-2', description: 'Click start button', status: 'pending' },
+          { id: 'dynamic-1-3', description: 'Wait for loading indicator', status: 'pending' },
+          { id: 'dynamic-1-4', description: 'Verify element is present', status: 'pending' },
+        ]
+      },
+      { 
+        id: 'dynamic-2', 
+        name: 'should wait for element rendered after loading', 
+        status: 'pending', 
+        browser: 'chromium',
+        steps: [
+          { id: 'dynamic-2-1', description: 'Navigate to dynamic loading example 2', status: 'pending' },
+          { id: 'dynamic-2-2', description: 'Click start button', status: 'pending' },
+          { id: 'dynamic-2-3', description: 'Wait for loading indicator', status: 'pending' },
+          { id: 'dynamic-2-4', description: 'Verify element is present', status: 'pending' },
+        ]
+      }
+    ]
+  };
+  
+  const [tests, setTests] = useState<Test[]>(
+    selectedSpec && testSuites[selectedSpec as keyof typeof testSuites] 
+      ? testSuites[selectedSpec as keyof typeof testSuites] 
+      : testSuites.login
+  );
+  
+  useEffect(() => {
+    if (selectedSpec && testSuites[selectedSpec as keyof typeof testSuites]) {
+      setTests(testSuites[selectedSpec as keyof typeof testSuites]);
+    } else if (!selectedSpec) {
+      setTests(testSuites.login);
+    }
+  }, [selectedSpec]);
   
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -84,7 +177,6 @@ const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
     setProgress(0);
     toast.info('Running tests...');
     
-    // Reset test statuses
     setTests(tests.map(test => ({ 
       ...test, 
       status: 'pending', 
@@ -93,47 +185,38 @@ const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
       steps: test.steps.map(step => ({ ...step, status: 'pending', error: undefined }))
     })));
     
-    // Simulate test execution
     const totalTests = tests.length;
     
     for (let i = 0; i < totalTests; i++) {
-      // Update current test to running
       setTests(prev => {
         const updated = [...prev];
         updated[i].status = 'running';
         return updated;
       });
       
-      // Run each step in the test
       const currentTest = tests[i];
       for (let j = 0; j < currentTest.steps.length; j++) {
-        // Update current step to running
         setTests(prev => {
           const updated = [...prev];
           updated[i].steps[j].status = 'running';
           return updated;
         });
         
-        // Simulate step execution time
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Random pass/fail based on step id for demo purposes
         const stepPassed = Math.random() > 0.15;
         
-        // Update step status
         setTests(prev => {
           const updated = [...prev];
           updated[i].steps[j].status = stepPassed ? 'passed' : 'failed';
           
           if (!stepPassed) {
             updated[i].steps[j].error = 'Element not found or assertion failed';
-            // If a step fails, fail the test and break the step loop
             updated[i].status = 'failed';
             updated[i].error = `Step ${j+1} failed: ${updated[i].steps[j].error}`;
             return updated;
           }
           
-          // If this is the last step and all steps passed, mark test as passed
           if (j === currentTest.steps.length - 1) {
             updated[i].status = 'passed';
           }
@@ -141,29 +224,24 @@ const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
           return updated;
         });
         
-        // If the step failed, break the step loop
         if (tests[i].steps[j].status === 'failed') {
           break;
         }
       }
       
-      // Simulate test completion time
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Update test duration
       setTests(prev => {
         const updated = [...prev];
         updated[i].duration = Math.floor(Math.random() * 1000) + 500;
         return updated;
       });
       
-      // Update progress
       setProgress(Math.round(((i + 1) / totalTests) * 100));
     }
     
     setIsRunning(false);
     
-    // Calculate results
     const passedCount = tests.filter(t => t.status === 'passed').length;
     const failedCount = tests.filter(t => t.status === 'failed').length;
     
@@ -313,27 +391,33 @@ const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
               </div>
               <div className="bg-black text-white p-4 rounded-md font-mono text-sm h-64 overflow-auto">
                 <div className="text-green-400">$ npx playwright test</div>
-                <div className="text-gray-400 mt-2">Running 3 tests using 1 worker</div>
-                <div className="mt-1">
-                  <span className="text-green-400">✓ </span>
-                  <span className="text-white">login.spec.ts:10:19 › should login with valid credentials</span>
-                  <span className="text-gray-400"> (818ms)</span>
-                </div>
-                <div className="mt-1">
-                  <span className="text-green-400">✓ </span>
-                  <span className="text-white">login.spec.ts:18:19 › should not login with invalid credentials</span>
-                  <span className="text-gray-400"> (629ms)</span>
-                </div>
-                <div className="mt-1 text-red-400">
-                  ✘ login.spec.ts:26:19 › should show validation errors (734ms)
-                </div>
-                <div className="mt-1 text-gray-400 ml-4">
-                  Error: Timed out waiting for element to be visible
-                  at LoginPage.verifyErrorMessage (/tests/pages/LoginPage.ts:38:12)
-                </div>
-                <div className="mt-4 text-gray-400">
-                  2 passed, 1 failed (1.21s)
-                </div>
+                <div className="text-gray-400 mt-2">Running {tests.length} tests using 1 worker</div>
+                {tests.map((test, index) => (
+                  <div key={index} className="mt-1">
+                    {test.status === 'passed' ? (
+                      <>
+                        <span className="text-green-400">✓ </span>
+                        <span className="text-white">{selectedSpec}.spec.ts › {test.name}</span>
+                        <span className="text-gray-400"> ({test.duration || '0'}ms)</span>
+                      </>
+                    ) : test.status === 'failed' ? (
+                      <div className="text-red-400">
+                        ✘ {selectedSpec}.spec.ts › {test.name} ({test.duration || '0'}ms)
+                      </div>
+                    ) : (
+                      <>
+                        <span className="text-gray-400">- </span>
+                        <span className="text-white">{selectedSpec}.spec.ts › {test.name}</span>
+                        <span className="text-gray-400"> (pending)</span>
+                      </>
+                    )}
+                  </div>
+                ))}
+                {!isRunning && (
+                  <div className="mt-4 text-gray-400">
+                    {passedCount} passed, {failedCount} failed ({(tests.reduce((sum, test) => sum + (test.duration || 0), 0) / 1000).toFixed(2)}s)
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -347,18 +431,19 @@ const TestRunnerPanel: React.FC<TestRunnerPanelProps> = ({ selectedSpec }) => {
                 <h3 className="font-semibold">Test Screenshots</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border rounded-md p-2">
-                  <div className="text-sm font-medium mb-2">login.spec.ts - failed assertion</div>
-                  <div className="bg-gray-100 h-48 flex items-center justify-center">
-                    <AlertCircle className="h-12 w-12 text-gray-400" />
+                {failedCount > 0 ? (
+                  <div className="border rounded-md p-2">
+                    <div className="text-sm font-medium mb-2">{selectedSpec}.spec.ts - failed assertion</div>
+                    <div className="bg-gray-100 h-48 flex items-center justify-center">
+                      <AlertCircle className="h-12 w-12 text-gray-400" />
+                    </div>
                   </div>
-                </div>
-                <div className="border rounded-md p-2">
-                  <div className="text-sm font-medium mb-2">login.spec.ts - before state</div>
-                  <div className="bg-gray-100 h-48 flex items-center justify-center">
-                    <AlertCircle className="h-12 w-12 text-gray-400" />
+                ) : (
+                  <div className="border rounded-md p-2 col-span-2 text-center py-12">
+                    <AlertCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <div className="text-sm text-gray-500">No screenshots available - all tests passed or not yet run</div>
                   </div>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>

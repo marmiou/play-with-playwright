@@ -25,7 +25,9 @@ export const TestSidebar = ({ activeTab, setActiveTab, onSelectSpec }: TestSideb
     { id: 'login', name: 'Login Tests', fileCount: 2 },
     { id: 'checkboxes', name: 'Checkbox Tests', fileCount: 1 },
     { id: 'dropdown', name: 'Dropdown Tests', fileCount: 1 },
-    { id: 'inputs', name: 'Input Tests', fileCount: 3 },
+    { id: 'inputs', name: 'Input Tests', fileCount: 1 },
+    { id: 'hovers', name: 'Hover Tests', fileCount: 1 },
+    { id: 'dynamic-loading', name: 'Dynamic Loading Tests', fileCount: 2 },
   ];
 
   return (
@@ -82,6 +84,7 @@ export const TestSidebar = ({ activeTab, setActiveTab, onSelectSpec }: TestSideb
                     >
                       <FileText size={18} />
                       <span>{spec.name}</span>
+                      <span className="ml-auto text-xs text-gray-500">{spec.fileCount}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
